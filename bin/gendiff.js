@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 import fileParse from '../src/parse.js';
+import gendiff from '../src/index.js';
 
 const program = new Command();
 
