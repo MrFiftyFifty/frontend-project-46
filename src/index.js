@@ -1,32 +1,23 @@
-import _ from 'lodash';
-import fileParse from './parse.js'
+import fs from 'fs';
+import path from 'path';
+import process from 'process';
+import buildTree from './buildTree.js';
 
-const buildProperty = (arr, sign, key, value) => {
-    if (value !== undefined) {
-        arr.push(`  ${sign} ${key}: ${value}`);
-    }
+const genDiff = (filepath1, filepath2) => {
+  const getFormat1 = path.extname(filepath1);
+  const getFormat2 = path.extname(filepath2);
+
+  const getPath1 = path.resolve(process.cwd(), filepath1);
+  const getPath2 = path.resolve(process.cwd(), filepath2);
+
+  const readFile1 = fs.readFileSync(getPath1, 'utf-8');
+  const readFile2 = fs.readFileSync(getPath2, 'utf-8');
+
+  const object1 = parsers(readFile1, getFormat1);
+  const object2 = parsers(readFile2, getFormat2);
+
+  const tree = buildTree(object1, object2);
+  return tree;
 };
 
-const compareValues = (key, value1, value2) => {
-    const diff = [];
-    if (value1 === value2) {
-        buildProperty(diff, ' ', key, value1);
-    } else {
-        buildProperty(diff, '-', key, value1);
-        buildProperty(diff, '+', key, value2);
-    }
-    return diff;
-};
-
-export default (filepath1, filepath2) => {
-    const obj1 = fileParse(filepath1);
-    const obj2 = fileParse(filepath2);
-    const mergedObj = _.merge({}, obj1, obj2);
-    const keys = _.sortBy(Object.keys(mergedObj));
-    const result = keys
-        .reduce((acc, key) => {
-            const property = compareValues(key, obj1[key], obj2[key]);
-            return [...acc, ...property];
-        }, []).join('\n');
-    return `{\n${result}\n}`
-};
+export default genDiff;

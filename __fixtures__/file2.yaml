@@ -1,0 +1,4 @@
+timeout: 20
+verbose: true
+host: hexlet.io
+  3 changes: 3 additions & 0 deletions3  

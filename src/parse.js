@@ -1,20 +1,15 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { extname, resolve } from 'node:path';
-import { cwd } from 'node:process';
+import yaml from 'js-yaml';
 
-const fileParse = (path) => {
-    const workDir = cwd();
-    const absolutePatn = resolve(workDir, path);
-    if (existsSync(absolutePatn)) {
-        const ext = extname(absolutePatn);
-        switch (ext) {
-            case '.json':
-                return JSON.parse(readFileSync(absolutePatn, 'utf8'));
-            default:
-                return readFileSync(absolutePatn, 'utf8');
-        }
-    }
-    return absolutePatn;
-}
+const parser = (data, format) => {
+  switch (format) {
+    case '.json':
+      return JSON.parse(data);
+    case '.yaml':
+    case '.yml':
+      return yaml.load(data);
+    default:
+      throw new Error('Incorrect format');
+  }
+};
 
-export default fileParse;
+export default parser;
