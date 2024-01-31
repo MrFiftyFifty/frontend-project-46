@@ -1,20 +1,23 @@
 import _ from 'lodash';
 
-const buildTreeTree = (data1, data2) => {
-  console.log(data1);
-  console.log(data2);
-  const keys = _.sortBy(_.union(_.keys(data1), _.keys(data2)));
-  const difference = {};
-  keys.forEach((key) => {
-    if (data1[key] !== data2[key]) {
-      difference[` - ${key}`] = data1[key];
-      difference[` + ${key}`] = data2[key];
-    } else {
-      difference[`   ${key}`] = data1[key];
-    }
-  });
+const buildTree = (file1, file2) => {
+  const keys = _.union(Object.keys(file1), Object.keys(file2)).sort();
 
-  return JSON.stringify(difference, null, ' ').replace(/"|,/gi, '');
+  return keys.map((key) => {
+    if (!_.has(file1, key)) {
+      return { key, value: file2[key], type: 'added' };
+    }
+    if (!_.has(file2, key)) {
+      return { key, value: file1[key], type: 'deleted' };
+    }
+    if (_.isPlainObject(file1[key]) && _.isPlainObject(file2[key])) {
+      return { key, children: buildTree(file1[key], file2[key]), type: 'nested' };
+    }
+    if (!_.isEqual(file1[key], file2[key])) {
+      return { key, value1: file1[key], value2: file2[key], type: 'changed' };
+    }
+    return { key, value: file1[key], type: 'unchanged' };
+  });
 };
 
-export default buildTreeTree;
+export default buildTree;
