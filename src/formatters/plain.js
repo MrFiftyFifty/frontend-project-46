@@ -12,36 +12,36 @@ const stringify = (data) => {
   return data;
 };
 
+const formatAddedProperty = (path, value) => `Property '${path}' was added with value: ${stringify(value)}`;
+
+const formatDeletedProperty = (path) => `Property '${path}' was removed`;
+
+const formatChangedProperty = (path, oldValue, value) => `Property '${path}' was updated. From ${stringify(oldValue)} to ${stringify(value)}`;
+
 const plain = (data) => {
-  const iter = (obj, path) => {
-    const values = Object.values(obj);
-    const strings = values
-      .map((node) => {
-        const {
-          key, oldValue, value, type,
-        } = node;
-        const newPath = path === '' ? `${key}` : `${path}.${key}`;
-        switch (type) {
-          case 'added':
-            return `Property '${newPath}' was added with value: ${stringify(value)}`;
-          case 'deleted':
-            return `Property '${newPath}' was removed`;
-          case 'changed':
-            return `Property '${newPath}' was updated. From ${stringify(oldValue)} to ${stringify(
-              value,
-            )}`;
-          case 'hasChild':
-            return iter(value, newPath);
-          case 'unchanged':
-            return;
-          default:
-            throw new Error('unexpected value');
-        }
-      })
-      .filter((item) => item !== undefined)
-      .join('\n');
-    return strings;
-  };
+  const iter = (obj, path) => Object.values(obj)
+    .map((node) => {
+      const {
+        key, oldValue, value, type,
+      } = node;
+      const newPath = path ? `${path}.${key}` : key;
+      switch (type) {
+        case 'added':
+          return formatAddedProperty(newPath, value);
+        case 'deleted':
+          return formatDeletedProperty(newPath);
+        case 'changed':
+          return formatChangedProperty(newPath, oldValue, value);
+        case 'hasChild':
+          return iter(value, newPath);
+        case 'unchanged':
+          return null;
+        default:
+          throw new Error(`Unexpected type: ${type}`);
+      }
+    })
+    .filter(Boolean)
+    .join('\n');
   return iter(data, '');
 };
 
