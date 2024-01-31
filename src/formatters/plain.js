@@ -12,36 +12,33 @@ const stringify = (data) => {
   return data;
 };
 
-const formatAddedProperty = (path, value) => `Property '${path}' was added with value: ${stringify(value)}`;
-
-const formatDeletedProperty = (path) => `Property '${path}' was removed`;
-
-const formatChangedProperty = (path, oldValue, value) => `Property '${path}' was updated. From ${stringify(oldValue)} to ${stringify(value)}`;
-
 const plain = (data) => {
-  const iter = (obj, path) => Object.values(obj)
-    .map((node) => {
+  const iter = (obj, path) => {
+    const values = Object.values(obj);
+    const strings = values.flatMap((node) => {
       const {
         key, oldValue, value, type,
       } = node;
-      const newPath = path ? `${path}.${key}` : key;
+      const newPath = path === '' ? `${key}` : `${path}.${key}`;
       switch (type) {
         case 'added':
-          return formatAddedProperty(newPath, value);
+          return `Property '${newPath}' was added with value: ${stringify(value)}`;
         case 'deleted':
-          return formatDeletedProperty(newPath);
+          return `Property '${newPath}' was removed`;
         case 'changed':
-          return formatChangedProperty(newPath, oldValue, value);
+          return `Property '${newPath}' was updated. From ${stringify(oldValue)} to ${stringify(
+            value,
+          )}`;
         case 'hasChild':
           return iter(value, newPath);
         case 'unchanged':
-          return null;
+          return [];
         default:
-          throw new Error(`Unexpected type: ${type}`);
+          throw new Error('unknown type');
       }
-    })
-    .filter(Boolean)
-    .join('\n');
+    });
+    return strings.filter((item) => item !== undefined).join('\n');
+  };
   return iter(data, '');
 };
 

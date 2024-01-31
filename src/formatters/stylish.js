@@ -15,34 +15,32 @@ const stringify = (data, depth) => {
   return `{\n${strings.join('\n')}\n${currentReplacer}}`;
 };
 
-const stylish = (data) => {
-  const iter = (obj, depth) => {
-    const currentReplacer = replacer.repeat(depth);
-    const result = obj.flatMap((node) => {
-      const {
-        key, oldValue, value, type,
-      } = node;
-      switch (type) {
-        case 'added':
-          return `${currentReplacer}  + ${key}: ${stringify(value, depth + 1)}`;
-        case 'deleted':
-          return `${currentReplacer}  - ${key}: ${stringify(value, depth + 1)}`;
-        case 'unchanged':
-          return `${currentReplacer}    ${key}: ${stringify(value, depth + 1)}`;
-        case 'changed':
-          return `${currentReplacer}  - ${key}: ${stringify(
-            oldValue,
-            depth + 1,
-          )}\n${currentReplacer}  + ${key}: ${stringify(value, depth + 1)}`;
-        case 'hasChild':
-          return `${currentReplacer}    ${key}: ${iter(value, depth + 1)}`;
-        default:
-          throw new Error('unexpected value');
-      }
-    });
-    return `{\n${result.join('\n')}\n${currentReplacer}}`;
+const stylish = (data, depth = 0) => {
+  const formatNode = (node, currentReplacer) => {
+    const {
+      key, oldValue, value, type,
+    } = node;
+    const formattedValue = stringify(value, depth + 1);
+    const formattedOldValue = stringify(oldValue, depth + 1);
+    switch (type) {
+      case 'added':
+        return `${currentReplacer}  + ${key}: ${formattedValue}`;
+      case 'deleted':
+        return `${currentReplacer}  - ${key}: ${formattedValue}`;
+      case 'unchanged':
+        return `${currentReplacer}    ${key}: ${formattedValue}`;
+      case 'changed':
+        return `${currentReplacer}  - ${key}: ${formattedOldValue}\n${currentReplacer}  + ${key}: ${formattedValue}`;
+      case 'hasChild':
+        return `${currentReplacer}    ${key}: ${stylish(value, depth + 1)}`;
+      default:
+        throw new Error('unexpected value');
+    }
   };
-  return iter(data, 0);
+
+  const currentReplacer = replacer.repeat(depth);
+  const result = data.flatMap((node) => formatNode(node, currentReplacer));
+  return `{\n${result.join('\n')}\n${currentReplacer}}`;
 };
 
 export default stylish;
