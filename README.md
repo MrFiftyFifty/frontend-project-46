@@ -34,6 +34,14 @@ npm link
 
 [![asciicast](https://asciinema.org/a/lZZeTozPrUFlnXMzB1BOph5NU.svg)](https://asciinema.org/a/lZZeTozPrUFlnXMzB1BOph5NU)
 
-## Пример использования с поддержкой json и yaml:
+## Пример использования с поддержкой json и yaml в формате stylish:
 
-[![asciicast](https://asciinema.org/a/634714.svg)](https://asciinema.org/a/634714)
+[![asciicast](https://asciinema.org/a/634725.svg)](https://asciinema.org/a/634725)
+
+## Пример использования в формате plain:
+
+[![asciicast](https://asciinema.org/a/634770.svg)](https://asciinema.org/a/634770)
+
+## Пример использования в формате json:
+
+[![asciicast](https://asciinema.org/a/634773.svg)](https://asciinema.org/a/634773)

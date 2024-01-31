@@ -1,23 +1,33 @@
 import _ from 'lodash';
 
-const buildTree = (file1, file2) => {
-  const keys = _.union(Object.keys(file1), Object.keys(file2)).sort();
+const buildTree = (obj1, obj2) => {
+  const sortedUnicKeys = _.sortBy(_.union(Object.keys(obj1), Object.keys(obj2)));
+  const resultObj = sortedUnicKeys.map((key) => {
+    const value1 = obj1[key];
+    const value2 = obj2[key];
 
-  return keys.map((key) => {
-    if (!_.has(file1, key)) {
-      return { key, value: file2[key], type: 'added' };
+    if (!Object.hasOwn(obj1, key)) {
+      return { key, value: value2, type: 'added' };
     }
-    if (!_.has(file2, key)) {
-      return { key, value: file1[key], type: 'deleted' };
+
+    if (!Object.hasOwn(obj2, key)) {
+      return { key, value: value1, type: 'deleted' };
     }
-    if (_.isPlainObject(file1[key]) && _.isPlainObject(file2[key])) {
-      return { key, children: buildTree(file1[key], file2[key]), type: 'nested' };
+
+    if (value1 === value2) {
+      return { key, value: value1, type: 'unchanged' };
     }
-    if (!_.isEqual(file1[key], file2[key])) {
-      return { key, value1: file1[key], value2: file2[key], type: 'changed' };
+
+    if (typeof value1 === 'object' && typeof value2 === 'object') {
+      return { key, value: buildTree(value1, value2), type: 'hasChild' };
     }
-    return { key, value: file1[key], type: 'unchanged' };
+    return {
+      key,
+      oldValue: value1,
+      value: value2,
+      type: 'changed',
+    };
   });
+  return resultObj;
 };
-
 export default buildTree;

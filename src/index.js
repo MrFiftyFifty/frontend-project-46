@@ -1,47 +1,24 @@
-import fs from 'fs';
-import _ from 'lodash';
-import path from 'path';
-import process from 'process';
-import parse from './parse.js';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { cwd } from 'process';
+import parseFile from './parsers.js';
+import buildTree from './buildTree.js';
+import formatter from './formatters/index.js';
 
-const getAbsolutePath = (file) => path.resolve(process.cwd(), file);
-const getFileFormat = (filePath) => path.extname(filePath).slice(1);
-
-const readData = (file) => fs.readFileSync(file, 'utf-8');
-
-const getDifferences = (data1, data2) => {
-  const keys = _.union(Object.keys(data1), Object.keys(data2));
-  const sortedKeys = _.sortBy(keys);
-  const diff = sortedKeys.map((key) => {
-    if (!_.has(data1, key)) {
-      return ` + ${key}: ${data2[key]}`;
-    }
-    if (!_.has(data2, key)) {
-      return ` - ${key}: ${data1[key]}`;
-    }
-    if (data1[key] === data2[key]) {
-      return `   ${key}: ${data1[key]}`;
-    }
-    return ` - ${key}: ${data1[key]}\n + ${key}: ${data2[key]}`;
-  });
-
-  return `{\n${diff.join('\n')}\n}`;
+const readfile = (filepath) => {
+  const currentDir = cwd();
+  const absolutePath = resolve(currentDir, filepath);
+  const content = readFileSync(absolutePath, 'utf-8');
+  return content;
 };
 
-const genDiff = (filepath1, filepath2) => {
-  const absolutePath1 = getAbsolutePath(filepath1);
-  const absolutePath2 = getAbsolutePath(filepath2);
+const getExtension = (file) => file.split('.')[1];
 
-  const data1 = readData(absolutePath1, 'utf-8');
-  const data2 = readData(absolutePath2, 'utf-8');
-
-  const fileFormat1 = getFileFormat(filepath1);
-  const fileFormat2 = getFileFormat(filepath2);
-
-  const data1Parse = parse(data1, fileFormat1);
-  const data2Parse = parse(data2, fileFormat2);
-
-  return getDifferences(data1Parse, data2Parse);
+const genDiff = (filepath1, filepath2, format = 'stylish') => {
+  const file1 = parseFile(getExtension(filepath1), readfile(filepath1));
+  const file2 = parseFile(getExtension(filepath2), readfile(filepath2));
+  const diffTree = buildTree(file1, file2);
+  return formatter(diffTree, format);
 };
 
 export default genDiff;
